@@ -13,7 +13,8 @@ import {
   FileCheck,
   ClipboardPen,
   Users,
-  LayoutGrid
+  LayoutGrid,
+  ClipboardType
 } from 'lucide-react';
 import api from '@/services/api';
 
@@ -55,6 +56,10 @@ const NAV_ITEMS = [
     subLabel: 'Student & Class',
     href: '/dashboard/teacher/reports', 
     icon: FileText 
+  },{ 
+    name: 'Notice Board', 
+    href: '/dashboard/teacher/noticeboard', 
+    icon: ClipboardType 
   },{ 
     name: 'My Profile', 
     href: '/dashboard/teacher/profile', 

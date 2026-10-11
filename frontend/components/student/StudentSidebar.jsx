@@ -13,7 +13,8 @@ import {
   User,
   Settings,
   ChevronRight,
-  Headphones
+  Headphones,
+  ClipboardType
 } from 'lucide-react';
 import api from '@/services/api';
 
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { name: 'My Attendance', href: '/dashboard/student/my-attendance', icon: CalendarCheck },
   { name: 'Marksheet & Grades', href: '/dashboard/student/exams', icon: FileText },
   { name: 'Timetable', href: '/dashboard/student/timetable', icon: Calendar },
+  { name: 'Notice Board', href: '/dashboard/student/noticeboard', icon: ClipboardType},
   { name: 'Syllabus', href: '/dashboard/student/syllabus', icon: Book },
   { name: 'My Profile', href: '/dashboard/student/profile', icon: User },
   { name: 'Settings', href: '/dashboard/student/settings', icon: Settings }
