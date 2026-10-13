@@ -2,6 +2,7 @@ const base = (size) => ({
   width: size, height: size, viewBox: "0 0 24 24", fill: "none",
   stroke: "currentColor", strokeWidth: 1.75,
   strokeLinecap: "round", strokeLinejoin: "round",
+  "aria-hidden": true, focusable: false,
 });
 
 export const IconWallet = ({ size = 20, className = "" }) => (
@@ -40,29 +41,6 @@ export const IconCheckCircle = ({ size = 20, className = "" }) => (
   </svg>
 );
 
-export const IconClock = ({ size = 20, className = "" }) => (
-  <svg {...base(size)} className={className}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
-  </svg>
-);
-
-export const IconUsers = ({ size = 20, className = "" }) => (
-  <svg {...base(size)} className={className}>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-    <circle cx="9.5" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-export const IconCalendar = ({ size = 20, className = "" }) => (
-  <svg {...base(size)} className={className}>
-    <rect x="3" y="5" width="18" height="16" rx="2" />
-    <path d="M3 10h18M8 3v4M16 3v4" />
-  </svg>
-);
-
 export const IconChart = ({ size = 20, className = "" }) => (
   <svg {...base(size)} className={className}>
     <path d="M3 3v18h18" />
@@ -74,20 +52,6 @@ export const IconTrendUp = ({ size = 16, className = "" }) => (
   <svg {...base(size)} className={className}>
     <path d="M7 17L17 7" />
     <path d="M9 7h8v8" />
-  </svg>
-);
-
-export const IconTrendDown = ({ size = 16, className = "" }) => (
-  <svg {...base(size)} className={className}>
-    <path d="M7 7l10 10" />
-    <path d="M17 9v8H9" />
-  </svg>
-);
-
-export const IconSearch = ({ size = 18, className = "" }) => (
-  <svg {...base(size)} className={className}>
-    <circle cx="11" cy="11" r="7" />
-    <path d="M20 20l-3.5-3.5" />
   </svg>
 );
 
@@ -112,15 +76,22 @@ export const IconArrowLeft = ({ size = 16, className = "" }) => (
   </svg>
 );
 
+export const IconCalendar = ({ size = 20, className = "" }) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4" />
+  </svg>
+);
+
 export const IconEmptyReceipt = ({ size = 48, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
     <path d="M16 8h32v48l-6-4-6 4-6-4-6 4-6-4-6 4V8z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" opacity="0.35" />
     <path d="M24 22h16M24 30h16M24 38h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
   </svg>
 );
 
 export const IconEmptyCard = ({ size = 48, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
     <rect x="8" y="16" width="48" height="32" rx="4" stroke="currentColor" strokeWidth="2.5" opacity="0.35" />
     <path d="M8 26h48" stroke="currentColor" strokeWidth="2.5" opacity="0.35" />
     <path d="M18 40h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
@@ -128,15 +99,38 @@ export const IconEmptyCard = ({ size = 48, className = "" }) => (
 );
 
 export const IconEmptyUser = ({ size = 48, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
     <circle cx="32" cy="24" r="10" stroke="currentColor" strokeWidth="2.5" opacity="0.35" />
     <path d="M12 54c0-11 9-20 20-20s20 9 20 20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
   </svg>
 );
 
 export const IconEmptySearch = ({ size = 48, className = "" }) => (
-  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className}>
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
     <circle cx="28" cy="28" r="16" stroke="currentColor" strokeWidth="2.5" opacity="0.35" />
     <path d="M52 52l-14-14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
+  </svg>
+);
+
+export const IconUsers = ({ size = 20, className = "" }) => (
+  <svg {...base(size)} className={className}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+    <circle cx="9.5" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+export const IconClock = ({ size = 20, className = "" }) => (
+  <svg {...base(size)} className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);
+
+export const IconSearch = ({ size = 18, className = "" }) => (
+  <svg {...base(size)} className={className}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
   </svg>
 );

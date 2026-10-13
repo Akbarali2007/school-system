@@ -27,8 +27,8 @@ export default function FeeStructurePage() {
     try {
       const res = await feeService.bulkCreate(payload);
       setRecent(res.data || []);
-      if (confirm(`✅ ${res.count} invoices created.\n\nView them now?`)) {
-        router.push("/dashboard/admin/fees/invoices");
+      if (confirm(`âœ… ${res.count} invoices created.\n\nView them now?`)) {
+        router.push("/admin/fees/invoices");
       }
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to create invoices";
@@ -40,7 +40,7 @@ export default function FeeStructurePage() {
     <main className="min-h-screen bg-gray-50/50">
       <div className="max-w-3xl mx-auto px-6 py-10">
         <Link
-          href="/dashboard/admin/fees"
+          href="/admin/fees"
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition"
         >
           <IconArrowLeft /> Fee Management
@@ -98,7 +98,7 @@ export default function FeeStructurePage() {
 
             <div className="px-6 py-4 border-t border-gray-100 flex gap-2 bg-gray-50/50">
               <Link
-                href="/dashboard/admin/fees/invoices"
+                href="/admin/fees/invoices"
                 className="inline-flex items-center justify-center font-medium rounded-lg px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 transition"
               >
                 View invoices
