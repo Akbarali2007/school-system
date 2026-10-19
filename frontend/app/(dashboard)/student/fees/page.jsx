@@ -150,7 +150,7 @@ export default function StudentFeesPage() {
     <main className="min-h-screen bg-gray-50/50">
       <div className="max-w-5xl mx-auto px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-[32px] leading-tight font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
             My fees
           </h1>
           <p className="text-gray-500 mt-2 text-[15px]">
@@ -178,7 +178,7 @@ export default function StudentFeesPage() {
                 <div
                   className={
                     "text-[44px] leading-none font-semibold mt-3 tracking-tight tabular-nums " +
-                    (stats.dueTotal > 0 ? "text-gray-900" : "text-emerald-700")
+                    (stats.dueTotal > 0 ? "text-navy" : "text-emerald-700")
                   }
                 >
                   {formatCurrency(stats.dueTotal)}
@@ -228,7 +228,7 @@ export default function StudentFeesPage() {
                   <div className="text-[11px] text-gray-500 uppercase tracking-wide">
                     Next due date
                   </div>
-                  <div className="text-sm font-medium text-gray-900 mt-1">
+                  <div className="text-sm font-medium text-navy mt-1">
                     {new Date(stats.nextDue).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "long",
@@ -301,7 +301,7 @@ export default function StudentFeesPage() {
                     className={
                       "px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition " +
                       (active
-                        ? "bg-gray-900 text-white"
+                        ? "bg-brand text-white"
                         : "text-gray-600 hover:bg-gray-100")
                     }
                   >
@@ -321,7 +321,7 @@ export default function StudentFeesPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 transition"
+              className="text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand transition"
             >
               {SORTS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -350,7 +350,7 @@ export default function StudentFeesPage() {
             <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
               <IconEmptyReceipt />
             </div>
-            <h3 className="font-semibold text-gray-900 text-[17px]">
+            <h3 className="font-semibold text-navy text-[17px]">
               No fees yet
             </h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -363,7 +363,7 @@ export default function StudentFeesPage() {
         {!loading && visibleFees.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900 text-[17px]">
+              <h2 className="font-semibold text-navy text-[17px]">
                 {statusFilter === "all"
                   ? "All invoices"
                   : STATUS_FILTERS.find((s) => s.value === statusFilter)
@@ -391,7 +391,7 @@ export default function StudentFeesPage() {
             <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
               <IconCalendar />
             </div>
-            <h3 className="font-semibold text-gray-900 text-[17px]">
+            <h3 className="font-semibold text-navy text-[17px]">
               No {statusFilter} fees
             </h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -400,7 +400,7 @@ export default function StudentFeesPage() {
             <button
               type="button"
               onClick={() => setStatusFilter("all")}
-              className="inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-gray-900 text-white hover:bg-gray-800 mt-6 transition"
+              className="inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-brand text-white hover:bg-brand-600 mt-6 transition"
             >
               Show all invoices
             </button>
@@ -413,7 +413,7 @@ export default function StudentFeesPage() {
 
 const KPI_TONES = {
   emerald: "bg-emerald-50 text-emerald-600",
-  blue: "bg-blue-50 text-blue-600",
+  blue: "bg-blue-50 text-brand",
   red: "bg-red-50 text-red-600",
   gray: "bg-gray-100 text-gray-700",
 };
@@ -433,7 +433,7 @@ function KPI({ icon, tone, label, value, sub }) {
       <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
         {label}
       </div>
-      <div className="text-xl font-semibold text-gray-900 mt-1.5 tracking-tight tabular-nums">
+      <div className="text-xl font-semibold text-navy mt-1.5 tracking-tight tabular-nums">
         {value}
       </div>
       {sub && <div className="text-xs text-gray-400 mt-1 truncate">{sub}</div>}

@@ -17,7 +17,7 @@ const LINKS = [
     label: "Fee dashboard",
     description: "Analytics, charts, and all invoices at a glance.",
     icon: <IconChart size={20} />,
-    tone: "bg-blue-50 text-blue-600",
+    tone: "bg-blue-50 text-brand",
   },
   {
     href: "/admin/fees/structure",
@@ -62,13 +62,13 @@ export default function FeeHubPage() {
       <div className="max-w-5xl mx-auto px-6 py-10">
         <Link
           href="/admin/fees"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand mb-6 transition"
         >
           <IconArrowLeft /> Fee Management
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-[32px] leading-tight font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
             Fee module
           </h1>
           <p className="text-gray-500 mt-2 text-[15px]">
@@ -81,17 +81,17 @@ export default function FeeHubPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="group bg-white rounded-2xl border border-gray-200/60 p-6 hover:border-gray-900 hover:shadow-md transition flex items-start gap-4"
+              className="group bg-white rounded-2xl border border-gray-200/60 p-6 hover:border-brand hover:shadow-md transition flex items-start gap-4"
             >
               <div className={`w-11 h-11 rounded-xl ${item.tone} flex items-center justify-center shrink-0`}>
                 {item.icon}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="font-semibold text-gray-900 text-[15px]">
+                  <h2 className="font-semibold text-navy text-[15px]">
                     {item.label}
                   </h2>
-                  <span className="text-gray-300 group-hover:text-gray-900 transition">
+                  <span className="text-gray-300 group-hover:text-brand transition">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M5 12h14" />
                       <path d="M12 5l7 7-7 7" />

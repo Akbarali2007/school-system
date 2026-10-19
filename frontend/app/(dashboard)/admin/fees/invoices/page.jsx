@@ -124,7 +124,7 @@ export default function InvoicesPage() {
         {/* Breadcrumb */}
         <Link
           href="/admin/fees"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand mb-6 transition"
         >
           <IconArrowLeft /> Fee Management
         </Link>
@@ -132,7 +132,7 @@ export default function InvoicesPage() {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[32px] leading-tight font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
               All invoices
             </h1>
             <p className="text-gray-500 mt-2 text-[15px]">
@@ -143,7 +143,7 @@ export default function InvoicesPage() {
             type="button"
             onClick={handleExport}
             disabled={!visibleFees.length}
-            className="inline-flex items-center gap-2 font-medium rounded-lg px-4 py-2 text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 transition"
+            className="inline-flex items-center gap-2 font-medium rounded-lg px-4 py-2 text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand transition"
           >
             <IconDownload /> Export CSV
           </button>
@@ -196,7 +196,7 @@ export default function InvoicesPage() {
                   className={
                     "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition " +
                     (active
-                      ? "bg-gray-900 text-white"
+                      ? "bg-brand text-white"
                       : "text-gray-600 hover:bg-gray-100")
                   }
                 >
@@ -224,7 +224,7 @@ export default function InvoicesPage() {
               placeholder="Filter by month (for example, October-2026)"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="px-3.5 py-2 border border-gray-200 rounded-lg text-sm flex-1 min-w-[220px] focus:outline-none focus:border-gray-400 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-1 transition"
+              className="px-3.5 py-2 border border-gray-200 rounded-lg text-sm flex-1 min-w-[220px] focus:outline-none focus:border-gray-400 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 transition"
             />
             {(month || status) && (
               <button
@@ -233,7 +233,7 @@ export default function InvoicesPage() {
                   setMonth("");
                   setStatus("");
                 }}
-                className="text-sm text-gray-500 hover:text-gray-900 px-2 focus:outline-none focus-visible:underline transition"
+                className="text-sm text-gray-500 hover:text-brand px-2 focus:outline-none focus-visible:underline transition"
               >
                 Clear filters
               </button>
@@ -256,7 +256,7 @@ export default function InvoicesPage() {
             <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
               <IconEmptyReceipt />
             </div>
-            <h3 className="font-semibold text-gray-900 text-[17px]">
+            <h3 className="font-semibold text-navy text-[17px]">
               {status || month ? "No matching invoices" : "No invoices yet"}
             </h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -267,7 +267,7 @@ export default function InvoicesPage() {
             {!status && !month && (
               <Link
                 href="/admin/fees/structure"
-                className="inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-gray-900 text-white hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 mt-6 transition"
+                className="inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-brand text-white hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 mt-6 transition"
               >
                 Generate invoices
               </Link>
@@ -290,7 +290,7 @@ export default function InvoicesPage() {
           role="status"
           className={
             "fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium " +
-            (toast.tone === "error" ? "bg-red-600" : "bg-gray-900")
+            (toast.tone === "error" ? "bg-red-600" : "bg-brand")
           }
         >
           {toast.message}
@@ -303,7 +303,7 @@ export default function InvoicesPage() {
 const KPI_TONES = {
   emerald: "bg-emerald-50 text-emerald-600",
   amber: "bg-amber-50 text-amber-600",
-  blue: "bg-blue-50 text-blue-600",
+  blue: "bg-blue-50 text-brand",
   red: "bg-red-50 text-red-600",
 };
 
@@ -316,7 +316,7 @@ function KPI({ icon, tone, label, value, sub }) {
       <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
         {label}
       </div>
-      <div className="text-2xl font-semibold text-gray-900 mt-2 tracking-tight tabular-nums">
+      <div className="text-2xl font-semibold text-navy mt-2 tracking-tight tabular-nums">
         {value}
       </div>
       {sub && <div className="text-xs text-gray-400 mt-1 truncate">{sub}</div>}
