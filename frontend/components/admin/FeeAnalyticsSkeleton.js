@@ -1,6 +1,6 @@
 /**
  * Loading skeleton for the fee analytics dashboard.
- * Pure CSS — no dependencies.
+ * Pure CSS  no dependencies.
  */
 export default function FeeAnalyticsSkeleton() {
   return (

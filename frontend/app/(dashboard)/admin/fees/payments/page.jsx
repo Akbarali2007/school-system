@@ -122,14 +122,14 @@ export default function PaymentsPage() {
       <div className="max-w-7xl mx-auto px-6 py-10">
         <Link
           href="/admin/fees"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand mb-6 transition"
         >
           <IconArrowLeft /> Fee Management
         </Link>
 
         <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[32px] leading-tight font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
               Payment history
             </h1>
             <p className="text-gray-500 mt-2 text-[15px]">
@@ -148,7 +148,7 @@ export default function PaymentsPage() {
                     onClick={() => setView(v.value)}
                     className={
                       "px-3.5 py-2 text-sm font-medium transition " +
-                      (active ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50")
+                      (active ? "bg-brand text-white" : "text-gray-600 hover:bg-gray-50")
                     }
                   >
                     {v.label}
@@ -215,7 +215,7 @@ export default function PaymentsPage() {
             <button
               type="button"
               onClick={clearFilters}
-              className="text-sm text-gray-500 hover:text-gray-900 px-2"
+              className="text-sm text-gray-500 hover:text-brand px-2"
             >
               Clear filters
             </button>
@@ -233,7 +233,7 @@ export default function PaymentsPage() {
             <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
               <IconEmptyCard />
             </div>
-            <h3 className="font-semibold text-gray-900 text-[17px]">
+            <h3 className="font-semibold text-navy text-[17px]">
               No payments found
             </h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -250,7 +250,7 @@ export default function PaymentsPage() {
               <section key={month} className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden">
                 <header className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-[15px]">{month}</h3>
+                    <h3 className="font-semibold text-navy text-[15px]">{month}</h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {items.length} payment{items.length !== 1 ? "s" : ""} - {formatCurrency(items.reduce((s, f) => s + Number(f.amount), 0))}
                     </p>
@@ -267,7 +267,7 @@ export default function PaymentsPage() {
                           <IconCheckCircle size={14} />
                         </span>
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <div className="text-sm font-medium text-navy truncate">
                             {fee.studentId?.name || "Student"}
                           </div>
                           <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
@@ -282,13 +282,13 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4 shrink-0">
-                        <div className="font-medium text-gray-900 tabular-nums">
+                        <div className="font-medium text-navy tabular-nums">
                           {formatCurrency(fee.amount)}
                         </div>
                         <button
                           type="button"
                           onClick={() => handleReceipt(fee)}
-                          className="text-xs text-gray-500 hover:text-gray-900 transition"
+                          className="text-xs text-gray-500 hover:text-brand transition"
                         >
                           Receipt
                         </button>
@@ -306,7 +306,7 @@ export default function PaymentsPage() {
         <div
           className={
             "fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium " +
-            (toast.tone === "error" ? "bg-red-600" : "bg-gray-900")
+            (toast.tone === "error" ? "bg-red-600" : "bg-brand")
           }
         >
           {toast.message}
@@ -318,7 +318,7 @@ export default function PaymentsPage() {
 
 const TONES = {
   emerald: "bg-emerald-50 text-emerald-600",
-  blue: "bg-blue-50 text-blue-600",
+  blue: "bg-blue-50 text-brand",
   gray: "bg-gray-100 text-gray-700",
 };
 
@@ -339,7 +339,7 @@ function StatCard({ icon, tone, label, value, sub, trend }) {
       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
         {label}
       </div>
-      <div className="text-3xl font-semibold text-gray-900 mt-2 tracking-tight tabular-nums">
+      <div className="text-3xl font-semibold text-navy mt-2 tracking-tight tabular-nums">
         {value}
       </div>
       {sub && <div className="text-xs text-gray-400 mt-1.5">{sub}</div>}

@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/utils/formatCurrency";
 
-// Mock data — replace with real API later
+// Mock data  replace with real API later
 const MOCK_DATA = [
   { month: "Jan", amount: 1700000 },
   { month: "Feb", amount: 2300000 },
@@ -27,7 +27,7 @@ const RANGES = ["Last 6 Months", "Last 12 Months", "This Year"];
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-blue-600 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg">
+    <div className="bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg">
       Rs. {(payload[0].value / 1000000).toFixed(1)}M
     </div>
   );
@@ -42,8 +42,8 @@ export default function MonthlyCollectionChart({ data }) {
     <section className="bg-white rounded-2xl border border-gray-100 p-5">
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-xl">📊</span>
-          <h3 className="font-semibold text-gray-900">Monthly Fee Collection</h3>
+          <span className="text-xl"></span>
+          <h3 className="font-semibold text-navy">Monthly Fee Collection</h3>
         </div>
         <select
           value={range}

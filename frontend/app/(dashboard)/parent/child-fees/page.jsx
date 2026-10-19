@@ -9,7 +9,7 @@ import { feeService } from "@/services/feeService";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { IconEmptyReceipt } from "@/components/common/FeeIcons";
 
-// Map parent backend status → FeeCard enum
+// Map parent backend status  FeeCard enum
 const mapStatus = (status) => {
   if (status === "partial") return "pending";
   if (status === "unpaid") return "overdue";
@@ -88,7 +88,7 @@ export default function ChildFeesPage() {
       <div className="max-w-5xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-[32px] leading-tight font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
             Child Fees
           </h1>
           <p className="text-gray-500 mt-2 text-[15px]">
@@ -96,7 +96,7 @@ export default function ChildFeesPage() {
           </p>
         </div>
 
-        {/* Child switcher — Mohsin's component */}
+        {/* Child switcher  Mohsin's component */}
         <div className="mb-8">
           <ChildSwitcher
             childList={childList}
@@ -127,7 +127,7 @@ export default function ChildFeesPage() {
             <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
               <IconEmptyReceipt />
             </div>
-            <h3 className="font-semibold text-gray-900 text-[17px]">
+            <h3 className="font-semibold text-navy text-[17px]">
               Select a child
             </h3>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -139,13 +139,13 @@ export default function ChildFeesPage() {
         {/* Data loaded */}
         {data && !loading && (
           <>
-            {/* Summary cards — your styling */}
+            {/* Summary cards  your styling */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <div className="bg-white rounded-2xl border border-gray-200/60 p-6">
                 <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
                   Total
                 </div>
-                <div className="text-2xl font-semibold text-gray-900 mt-3 tracking-tight tabular-nums">
+                <div className="text-2xl font-semibold text-navy mt-3 tracking-tight tabular-nums">
                   {formatCurrency(data.totals?.total || 0)}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
@@ -171,7 +171,7 @@ export default function ChildFeesPage() {
                 </div>
                 <div
                   className={`text-2xl font-semibold mt-3 tracking-tight tabular-nums ${
-                    (data.totals?.due || 0) > 0 ? "text-red-600" : "text-gray-900"
+                    (data.totals?.due || 0) > 0 ? "text-red-600" : "text-navy"
                   }`}
                 >
                   {formatCurrency(data.totals?.due || 0)}
@@ -188,7 +188,7 @@ export default function ChildFeesPage() {
                 <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
                   <IconEmptyReceipt />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-[17px]">
+                <h3 className="font-semibold text-navy text-[17px]">
                   No fee records
                 </h3>
                 <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
@@ -197,11 +197,11 @@ export default function ChildFeesPage() {
               </div>
             )}
 
-            {/* Outstanding — your FeeCard grid */}
+            {/* Outstanding  your FeeCard grid */}
             {due.length > 0 && (
               <section className="mb-10">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-gray-900 text-[17px]">
+                  <h2 className="font-semibold text-navy text-[17px]">
                     Outstanding
                   </h2>
                   <span className="text-sm text-gray-500">{due.length}</span>
@@ -218,11 +218,11 @@ export default function ChildFeesPage() {
               </section>
             )}
 
-            {/* Paid — your FeeCard grid */}
+            {/* Paid  your FeeCard grid */}
             {paid.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-gray-900 text-[17px]">
+                  <h2 className="font-semibold text-navy text-[17px]">
                     Paid
                   </h2>
                   <span className="text-sm text-gray-500">{paid.length}</span>
