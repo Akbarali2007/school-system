@@ -61,10 +61,6 @@ const NAV_ITEMS = [
     href: '/dashboard/teacher/noticeboard', 
     icon: ClipboardType 
   },{ 
-    name: 'My Profile', 
-    href: '/dashboard/teacher/profile', 
-    icon: User 
-  },{ 
     name: 'Settings', 
     href: '/dashboard/teacher/settings', 
     icon: Settings 
