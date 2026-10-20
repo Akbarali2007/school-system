@@ -1,348 +1,250 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import InvoiceTable from "@/components/admin/InvoiceTable";
-import { feeService } from "@/services/feeService";
-import { formatCurrency } from "@/utils/formatCurrency";
-import { exportToCsv } from "@/utils/exportToCsv";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  IconArrowLeft,
-  IconDownload,
-  IconCheckCircle,
-  IconEmptyCard,
-  IconWallet,
-  IconReceipt,
-  IconChart,
-  IconTrendUp,
-} from "@/components/common/FeeIcons";
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, PieChart, Pie, Cell,
+} from "recharts";
 
-// Fallback mock data (used when backend is offline)
-const MOCK_PAID_FEES = [
-  { _id: "m1", invoiceNo: "INV-0001-A1B2", studentId: { name: "Ali Ahmed", rollNo: "STU-001" }, amount: 5000, month: "October-2026", paidDate: "2026-10-05", paymentMethod: "cash", status: "paid" },
-  { _id: "m2", invoiceNo: "INV-0002-C3D4", studentId: { name: "Fatima Khan", rollNo: "STU-002" }, amount: 5000, month: "October-2026", paidDate: "2026-10-04", paymentMethod: "card", status: "paid" },
-  { _id: "m3", invoiceNo: "INV-0003-E5F6", studentId: { name: "Bilal Hussain", rollNo: "STU-003" }, amount: 4500, month: "September-2026", paidDate: "2026-09-25", paymentMethod: "bank_transfer", status: "paid" },
-  { _id: "m4", invoiceNo: "INV-0004-G7H8", studentId: { name: "Ayesha Siddiqui", rollNo: "STU-004" }, amount: 5000, month: "September-2026", paidDate: "2026-09-20", paymentMethod: "cash", status: "paid" },
-  { _id: "m5", invoiceNo: "INV-0005-I9J0", studentId: { name: "Hassan Raza", rollNo: "STU-005" }, amount: 5000, month: "September-2026", paidDate: "2026-09-18", paymentMethod: "online", status: "paid" },
-  { _id: "m6", invoiceNo: "INV-0006-K1L2", studentId: { name: "Zainab Tariq", rollNo: "STU-006" }, amount: 4500, month: "August-2026", paidDate: "2026-08-22", paymentMethod: "cheque", status: "paid" },
-  { _id: "m7", invoiceNo: "INV-0007-M3N4", studentId: { name: "Ali Ahmed", rollNo: "STU-001" }, amount: 5000, month: "August-2026", paidDate: "2026-08-15", paymentMethod: "cash", status: "paid" },
-];
+const currency = (value) => new Intl.NumberFormat("en-PK", {
+  style: "currency", currency: "PKR", notation: "compact", maximumFractionDigits: 1,
+}).format(Number(value) || 0);
 
-const VIEWS = [
-  { value: "table", label: "Table" },
-  { value: "timeline", label: "Timeline" },
-];
+const fullCurrency = (value) => new Intl.NumberFormat("en-PK", {
+  style: "currency", currency: "PKR", maximumFractionDigits: 0,
+}).format(Number(value) || 0);
 
-const METHODS = ["all", "cash", "card", "bank_transfer", "online", "cheque"];
+const COLORS = ["#0077F5", "#10B981", "#F59E0B", "#94A3B8"];
 
-const formatMethod = (m) => {
-  const map = {
-    cash: "Cash",
-    card: "Card",
-    bank_transfer: "Bank transfer",
-    online: "Online",
-    cheque: "Cheque",
-  };
-  return map[m] || m;
-};
-
-export default function PaymentsPage() {
-  const [fees, setFees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("table");
-  const [filters, setFilters] = useState({ method: "all", month: "" });
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, tone = "success") => {
-    setToast({ message, tone });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  useEffect(() => {
-    feeService
-      .list({ status: "paid", limit: 200 })
-      .then((res) => {
-        const real = res.data || [];
-        setFees(real.length > 0 ? real : MOCK_PAID_FEES);
-      })
-      .catch(() => setFees(MOCK_PAID_FEES))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleReceipt = (fee) =>
-    window.open(feeService.receiptUrl(fee._id), "_blank");
-
-  const filtered = useMemo(() => {
-    return fees.filter((f) => {
-      if (filters.method !== "all" && f.paymentMethod !== filters.method) return false;
-      if (filters.month && !(f.month || "").toLowerCase().includes(filters.month.toLowerCase())) return false;
-      return true;
-    });
-  }, [fees, filters]);
-
-  const stats = useMemo(() => {
-    const totalCollected = filtered.reduce((s, f) => s + Number(f.amount || 0), 0);
-    const avg = filtered.length ? Math.round(totalCollected / filtered.length) : 0;
-    const now = new Date();
-    const thisMonthTotal = filtered
-      .filter((f) => {
-        const d = f.paidDate ? new Date(f.paidDate) : null;
-        return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      })
-      .reduce((s, f) => s + Number(f.amount || 0), 0);
-    return { totalCollected, avg, thisMonthTotal };
-  }, [filtered]);
-
-  const groupedByMonth = useMemo(() => {
-    const groups = {};
-    filtered.forEach((f) => {
-      const month = f.month || "Unknown";
-      if (!groups[month]) groups[month] = [];
-      groups[month].push(f);
-    });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
-  }, [filtered]);
-
-  const handleExport = () => {
-    exportToCsv("payment-history", filtered, [
-      { label: "Invoice", value: (r) => r.invoiceNo },
-      { label: "Student", value: (r) => r.studentId?.name || "" },
-      { label: "Amount", value: (r) => r.amount },
-      { label: "Month", value: (r) => r.month },
-      { label: "Paid date", value: (r) => (r.paidDate ? new Date(r.paidDate).toISOString().slice(0, 10) : "") },
-      { label: "Method", value: (r) => r.paymentMethod || "" },
-    ]);
-    showToast("Payment history exported");
-  };
-
-  const clearFilters = () => setFilters({ method: "all", month: "" });
-
-  return (
-    <main className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <Link
-          href="/admin/fees"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand mb-6 transition"
-        >
-          <IconArrowLeft /> Fee Management
-        </Link>
-
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
-              Payment history
-            </h1>
-            <p className="text-gray-500 mt-2 text-[15px]">
-              All completed payments grouped by month.
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <div className="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden">
-              {VIEWS.map((v) => {
-                const active = view === v.value;
-                return (
-                  <button
-                    key={v.value}
-                    type="button"
-                    onClick={() => setView(v.value)}
-                    className={
-                      "px-3.5 py-2 text-sm font-medium transition " +
-                      (active ? "bg-brand text-white" : "text-gray-600 hover:bg-gray-50")
-                    }
-                  >
-                    {v.label}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={!filtered.length}
-              className="inline-flex items-center gap-2 font-medium rounded-lg px-4 py-2 text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 transition"
-            >
-              <IconDownload /> Export
-            </button>
-          </div>
-        </div>
-
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <StatCard
-            icon={<IconWallet size={18} />}
-            tone="emerald"
-            label="Total collected"
-            value={formatCurrency(stats.totalCollected)}
-            sub="All-time"
-            trend={12}
-          />
-          <StatCard
-            icon={<IconReceipt size={18} />}
-            tone="blue"
-            label="Paid invoices"
-            value={filtered.length.toString()}
-            sub={filtered.length === 1 ? "1 payment" : filtered.length + " payments"}
-          />
-          <StatCard
-            icon={<IconChart size={18} />}
-            tone="gray"
-            label="Average invoice"
-            value={formatCurrency(stats.avg)}
-            sub={"This month: " + formatCurrency(stats.thisMonthTotal)}
-          />
-        </section>
-
-        <div className="bg-white rounded-2xl border border-gray-200/60 p-4 mb-6 flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            placeholder="Filter by month (for example, October-2026)"
-            value={filters.month}
-            onChange={(e) => setFilters((f) => ({ ...f, month: e.target.value }))}
-            className="px-3.5 py-2 border border-gray-200 rounded-lg text-sm flex-1 min-w-[220px] focus:outline-none focus:border-gray-400 transition"
-          />
-          <select
-            value={filters.method}
-            onChange={(e) => setFilters((f) => ({ ...f, method: e.target.value }))}
-            className="px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 transition"
-          >
-            {METHODS.map((m) => (
-              <option key={m} value={m}>
-                {m === "all" ? "All methods" : formatMethod(m)}
-              </option>
-            ))}
-          </select>
-          {(filters.method !== "all" || filters.month) && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-sm text-gray-500 hover:text-brand px-2"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/60 p-8 space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/60 py-20 text-center">
-            <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
-              <IconEmptyCard />
-            </div>
-            <h3 className="font-semibold text-navy text-[17px]">
-              No payments found
-            </h3>
-            <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
-              {filters.method !== "all" || filters.month
-                ? "Try adjusting your filters."
-                : "Once invoices are marked as paid, they will appear here."}
-            </p>
-          </div>
-        ) : view === "table" ? (
-          <InvoiceTable fees={filtered} onViewReceipt={handleReceipt} />
-        ) : (
-          <div className="space-y-6">
-            {groupedByMonth.map(([month, items]) => (
-              <section key={month} className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden">
-                <header className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-navy text-[15px]">{month}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {items.length} payment{items.length !== 1 ? "s" : ""} - {formatCurrency(items.reduce((s, f) => s + Number(f.amount), 0))}
-                    </p>
-                  </div>
-                </header>
-                <ul className="divide-y divide-gray-50">
-                  {items.map((fee) => (
-                    <li
-                      key={fee._id}
-                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/60 transition"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <span className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                          <IconCheckCircle size={14} />
-                        </span>
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium text-navy truncate">
-                            {fee.studentId?.name || "Student"}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
-                            <span className="font-mono">{fee.invoiceNo}</span>
-                            {fee.paymentMethod && (
-                              <>
-                                <span>-</span>
-                                <span>{formatMethod(fee.paymentMethod)}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="font-medium text-navy tabular-nums">
-                          {formatCurrency(fee.amount)}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleReceipt(fee)}
-                          className="text-xs text-gray-500 hover:text-brand transition"
-                        >
-                          Receipt
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {toast && (
-        <div
-          className={
-            "fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium " +
-            (toast.tone === "error" ? "bg-red-600" : "bg-brand")
-          }
-        >
-          {toast.message}
-        </div>
-      )}
-    </main>
-  );
+function paymentMethod(fee) {
+  const value = String(fee.paymentMethod || fee.method || "").toLowerCase();
+  if (value.includes("cash")) return "Cash";
+  if (["online", "bank", "card", "digital", "easypaisa", "jazzcash"].some((x) => value.includes(x))) return "Online";
+  return "Unclassified";
 }
 
-const TONES = {
-  emerald: "bg-emerald-50 text-emerald-600",
-  blue: "bg-blue-50 text-brand",
-  gray: "bg-gray-100 text-gray-700",
-};
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
-function StatCard({ icon, tone, label, value, sub, trend }) {
+export default function AdminPaymentsPage() {
+  const [fees, setFees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/fees");
+      if (!response.ok) throw new Error("Could not load payments. Please retry.");
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : data.fees || data.invoices || [];
+      setFees(items.filter((fee) => String(fee.status || "").toLowerCase() === "paid"));
+    } catch (err) {
+      setError(err.message || "Unable to load payment data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const total = fees.reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+  const cashFees = fees.filter((fee) => paymentMethod(fee) === "Cash");
+  const onlineFees = fees.filter((fee) => paymentMethod(fee) === "Online");
+  const cashTotal = cashFees.reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+  const onlineTotal = onlineFees.reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+  const unknownTotal = total - cashTotal - onlineTotal;
+
+  const trend = useMemo(() => {
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
+      return {
+        key: monthKey(date),
+        month: date.toLocaleDateString("en-US", { month: "short" }),
+        collected: 0,
+      };
+    });
+    const indexByMonth = new Map(months.map((item, index) => [item.key, index]));
+
+    fees.forEach((fee) => {
+      const rawDate = fee.paidAt || fee.paymentDate || fee.updatedAt;
+      if (!rawDate) return;
+      const date = new Date(rawDate);
+      if (Number.isNaN(date.getTime())) return;
+      const index = indexByMonth.get(monthKey(date));
+      if (index !== undefined) months[index].collected += Number(fee.amount) || 0;
+    });
+
+    return months;
+  }, [fees]);
+
+  const methods = [
+    { name: "Cash", value: cashTotal },
+    { name: "Online", value: onlineTotal },
+    { name: "Unclassified", value: Math.max(0, unknownTotal) },
+  ].filter((item) => item.value > 0);
+
+  const filtered = fees.filter((fee) => {
+    const student = fee.student?.name || fee.studentName || "Student";
+    const invoice = fee.invoiceNumber || fee.invoiceNo || fee._id || fee.id || "";
+    return `${student} ${invoice} ${paymentMethod(fee)}`.toLowerCase().includes(search.toLowerCase());
+  });
+
+  const cards = [
+    { title: "Total collected", value: total, hint: `${fees.length} recorded payments`, icon: "↗", color: "bg-blue-50 text-brand" },
+    { title: "Cash collections", value: cashTotal, hint: `${cashFees.length} cash transactions`, icon: "₨", color: "bg-emerald-50 text-emerald-700" },
+    { title: "Online collections", value: onlineTotal, hint: `${onlineFees.length} digital transactions`, icon: "⇧", color: "bg-violet-50 text-violet-700" },
+  ];
+
   return (
-    <article className="bg-white rounded-2xl border border-gray-200/60 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className={"w-9 h-9 rounded-lg " + TONES[tone] + " flex items-center justify-center"}>
-          {icon}
-        </div>
-        {trend && (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
-            <IconTrendUp size={14} />
-            {trend}%
-          </span>
-        )}
+    <main className="min-h-screen bg-gray-50/50 px-4 py-7 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1500px] space-y-7">
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-brand">FINANCE / COLLECTIONS</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Payment analytics</h1>
+            <p className="mt-2 text-sm text-gray-500">Monitor collection performance and review recorded transactions.</p>
+          </div>
+          <button onClick={load} disabled={loading} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50">
+            {loading ? "Refreshing..." : "↻ Refresh data"}
+          </button>
+        </header>
+
+        {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"><span>{error}</span><button onClick={load} className="font-bold underline">Retry</button></div>}
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card) => (
+            <article key={card.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">{card.title}</p>
+                  <p className="mt-3 break-words text-2xl font-bold tracking-tight text-navy sm:text-3xl">{loading ? "—" : fullCurrency(card.value)}</p>
+                  <p className="mt-2 text-xs text-gray-500">{card.hint}</p>
+                </div>
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl font-bold ${card.color}`}>{card.icon}</span>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
+          <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-navy">Collection trend</h2>
+                <p className="mt-1 text-sm text-gray-500">Monthly recorded payments for the last six months</p>
+              </div>
+              <span className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-brand">PKR</span>
+            </div>
+            {loading ? <div className="mt-6 h-72 animate-pulse rounded-xl bg-gray-50" /> : (
+              <div className="mt-6 h-72 min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trend} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="collectionFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#0077F5" stopOpacity={0.24} />
+                        <stop offset="95%" stopColor="#0077F5" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#EEF2F7" strokeDasharray="4 4" vertical={false} />
+                    <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />
+                    <YAxis tickFormatter={(value) => currency(value)} tickLine={false} axisLine={false} width={65} tick={{ fill: "#94A3B8", fontSize: 11 }} />
+                    <Tooltip formatter={(value) => [fullCurrency(value), "Collected"]} contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", boxShadow: "0 8px 24px #0f172a0d" }} />
+                    <Area type="monotone" dataKey="collected" stroke="#0077F5" strokeWidth={3} fill="url(#collectionFill)" activeDot={{ r: 5, strokeWidth: 0 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            <p className="mt-2 text-xs leading-5 text-gray-400">Trend uses paid invoices with a valid paidAt, paymentDate, or updatedAt date. Missing dates cannot be assigned to a month.</p>
+          </article>
+
+          <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <h2 className="font-bold text-navy">Payment composition</h2>
+            <p className="mt-1 text-sm text-gray-500">Breakdown by recorded payment method</p>
+            {loading ? <div className="mt-6 h-64 animate-pulse rounded-xl bg-gray-50" /> : (
+              <>
+                <div className="relative mt-4 h-56 min-w-0">
+                  {methods.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={methods} dataKey="value" nameKey="name" innerRadius={60} outerRadius={88} paddingAngle={4} stroke="none">
+                          {methods.map((item) => <Cell key={item.name} fill={item.name === "Cash" ? "#10B981" : item.name === "Online" ? "#0077F5" : "#94A3B8"} />)}
+                        </Pie>
+                        <Tooltip formatter={(value) => [fullCurrency(value), "Amount"]} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-center text-sm text-gray-500">No payment method data yet</div>
+                  )}
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { name: "Cash", value: cashTotal, color: "#10B981" },
+                    { name: "Online", value: onlineTotal, color: "#0077F5" },
+                    { name: "Unclassified", value: Math.max(0, unknownTotal), color: "#94A3B8" },
+                  ].map((item) => (
+                    <div key={item.name}>
+                      <div className="flex justify-between gap-3 text-sm">
+                        <span className="flex items-center gap-2 text-gray-600"><span className="h-2.5 w-2.5 rounded-full" style={{ background: item.color }} />{item.name}</span>
+                        <span className="font-semibold text-navy">{fullCurrency(item.value)}</span>
+                      </div>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100">
+                        <div className="h-full rounded-full" style={{ width: `${total ? item.value / total * 100 : 0}%`, background: item.color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </article>
+        </section>
+
+        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-col justify-between gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:px-6">
+            <div>
+              <h2 className="text-lg font-bold text-navy">Recent payments</h2>
+              <p className="mt-1 text-sm text-gray-500">Recorded paid invoices from your fee records.</p>
+            </div>
+            <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search student or invoice..." className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-blue-100 sm:max-w-xs" />
+          </div>
+
+          {loading ? <div className="space-y-3 p-6">{[1, 2, 3, 4].map((n) => <div key={n} className="h-14 animate-pulse rounded-xl bg-gray-100" />)}</div> : filtered.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-xl text-gray-500">₨</div>
+              <h3 className="mt-3 font-bold text-navy">No matching payments</h3>
+              <p className="mt-1 text-sm text-gray-500">Recorded payments will appear here after invoices are marked paid.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                  <tr><th className="px-6 py-4">Student / invoice</th><th className="px-6 py-4">Payment date</th><th className="px-6 py-4">Method</th><th className="px-6 py-4 text-right">Amount</th><th className="px-6 py-4">Status</th></tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map((fee) => {
+                    const id = fee._id || fee.id;
+                    const date = fee.paidAt || fee.paymentDate || fee.updatedAt;
+                    const student = fee.student?.name || fee.studentName || "Student";
+                    return (
+                      <tr key={id} className="hover:bg-gray-50/70">
+                        <td className="px-6 py-4"><p className="font-semibold text-navy">{student}</p><p className="mt-1 text-xs text-gray-400">{fee.invoiceNumber || fee.invoiceNo || `INV-${id}`}</p></td>
+                        <td className="px-6 py-4 text-gray-600">{date && !Number.isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" }) : "Date unavailable"}</td>
+                        <td className="px-6 py-4"><span className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700">{paymentMethod(fee)}</span></td>
+                        <td className="px-6 py-4 text-right font-bold tabular-nums text-navy">{fullCurrency(fee.amount)}</td>
+                        <td className="px-6 py-4"><span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Paid</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-        {label}
-      </div>
-      <div className="text-3xl font-semibold text-navy mt-2 tracking-tight tabular-nums">
-        {value}
-      </div>
-      {sub && <div className="text-xs text-gray-400 mt-1.5">{sub}</div>}
-    </article>
+    </main>
   );
 }

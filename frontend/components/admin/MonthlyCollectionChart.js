@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -12,74 +11,46 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/utils/formatCurrency";
 
-// Mock data  replace with real API later
-const MOCK_DATA = [
-  { month: "Jan", amount: 1700000 },
-  { month: "Feb", amount: 2300000 },
-  { month: "Mar", amount: 2800000 },
-  { month: "Apr", amount: 3100000 },
-  { month: "May", amount: 3500000 },
-  { month: "Jun", amount: 4200000 },
-];
-
-const RANGES = ["Last 6 Months", "Last 12 Months", "This Year"];
-
-function CustomTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg">
-      Rs. {(payload[0].value / 1000000).toFixed(1)}M
-    </div>
-  );
-}
-
-export default function MonthlyCollectionChart({ data }) {
-  const [range, setRange] = useState(RANGES[0]);
-  const chartData = data || MOCK_DATA;
-  const maxMonth = chartData.reduce((a, b) => (b.amount > a.amount ? b : a), chartData[0]);
+export default function MonthlyCollectionChart({ data = [] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">
+        No collection data available
+      </div>
+    );
+  }
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 p-5">
-      <header className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl"></span>
-          <h3 className="font-semibold text-navy">Monthly Fee Collection</h3>
-        </div>
-        <select
-          value={range}
-          onChange={(e) => setRange(e.target.value)}
-          className="text-xs px-3 py-1.5 border border-gray-200 rounded-lg bg-white text-gray-600"
-        >
-          {RANGES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-      </header>
+    <section className="bg-white block min-h-[300px] rounded-2xl border border-gray-200/60 p-6 shadow-sm">
+      <div className="mb-6">
+        <h3 className="font-semibold text-navy text-[17px]">Monthly Collection</h3>
+        <p className="text-sm text-gray-500 mt-1">Fee collected over the last 6 months</p>
+      </div>
 
-      <div className="h-56">
+      <div style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-            <XAxis
-              dataKey="month"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
+          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <XAxis 
+              dataKey="month" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 12, fill: "#6b7280" }} 
+              dy={10}
             />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              tickFormatter={(v) => `${v / 1000000}M`}
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tickFormatter={(value) => `Rs ${value / 1000}k`}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="amount" radius={[6, 6, 0, 0]} maxBarSize={40}>
-              {chartData.map((entry, i) => (
-                <Cell
-                  key={i}
-                  fill={entry.month === maxMonth.month ? "#2563eb" : "#93c5fd"}
-                />
+            <Tooltip 
+              cursor={{ fill: "#f3f4f6" }}
+              contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+              formatter={(value) => [formatCurrency(value), "Collected"]}
+            />
+            <Bar dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={50}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill="#0077F5" />
               ))}
             </Bar>
           </BarChart>

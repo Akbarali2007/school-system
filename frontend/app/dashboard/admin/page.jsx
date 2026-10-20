@@ -1,5 +1,6 @@
 'use client';
 import WelcomeBanner from '@/components/admin/dashboard/WelcomeBanner';
+import Link from "next/link";
 import React from 'react'
 
 export default function TeacherDashboard() {

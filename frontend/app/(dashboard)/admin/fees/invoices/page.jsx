@@ -1,325 +1,231 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import InvoiceTable from "@/components/admin/InvoiceTable";
-import FeePaymentModal from "@/components/common/FeePaymentModal";
-import { feeService } from "@/services/feeService";
-import { exportToCsv } from "@/utils/exportToCsv";
-import { formatCurrency } from "@/utils/formatCurrency";
 import {
-  IconArrowLeft,
-  IconDownload,
-  IconEmptyReceipt,
-  IconWallet,
-  IconReceipt,
-  IconAlert,
-  IconCheckCircle,
-  IconClock,
-} from "@/components/common/FeeIcons";
+  ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
+} from "recharts";
+import InvoiceTable from "@/components/admin/InvoiceTable";
 
-// Fallback mock data (used when the backend is offline)
-const MOCK_FEES = [
-  { _id: "m1", invoiceNo: "INV-0001-A1B2", studentId: { name: "Ali Ahmed", rollNo: "STU-001" }, amount: 5000, month: "October-2026", dueDate: "2026-10-15", paidDate: null, status: "pending" },
-  { _id: "m2", invoiceNo: "INV-0002-C3D4", studentId: { name: "Fatima Khan", rollNo: "STU-002" }, amount: 5000, month: "October-2026", dueDate: "2026-10-15", paidDate: "2026-10-05", status: "paid" },
-  { _id: "m3", invoiceNo: "INV-0003-E5F6", studentId: { name: "Bilal Hussain", rollNo: "STU-003" }, amount: 4500, month: "September-2026", dueDate: "2026-09-20", paidDate: null, status: "overdue" },
-  { _id: "m4", invoiceNo: "INV-0004-G7H8", studentId: { name: "Ayesha Siddiqui", rollNo: "STU-004" }, amount: 5000, month: "September-2026", dueDate: "2026-09-20", paidDate: "2026-09-18", status: "paid" },
-  { _id: "m5", invoiceNo: "INV-0005-I9J0", studentId: { name: "Hassan Raza", rollNo: "STU-005" }, amount: 5000, month: "September-2026", dueDate: "2026-09-20", paidDate: "2026-09-19", status: "paid" },
-  { _id: "m6", invoiceNo: "INV-0006-K1L2", studentId: { name: "Zainab Tariq", rollNo: "STU-006" }, amount: 4500, month: "October-2026", dueDate: "2026-10-10", paidDate: null, status: "overdue" },
-  { _id: "m7", invoiceNo: "INV-0007-M3N4", studentId: { name: "Ali Ahmed", rollNo: "STU-001" }, amount: 5000, month: "August-2026", dueDate: "2026-08-20", paidDate: "2026-08-15", status: "paid" },
-  { _id: "m8", invoiceNo: "INV-0008-O5P6", studentId: { name: "Fatima Khan", rollNo: "STU-002" }, amount: 5000, month: "August-2026", dueDate: "2026-08-20", paidDate: "2026-08-18", status: "paid" },
-];
+const COLORS = ["#10B981", "#F59E0B", "#F43F5E"];
+const currency = (n) => new Intl.NumberFormat("en-PK", {
+  style: "currency", currency: "PKR", maximumFractionDigits: 0,
+}).format(n || 0);
 
-const STATUS_TABS = [
-  { value: "", label: "All", icon: <IconReceipt size={14} /> },
-  { value: "paid", label: "Paid", icon: <IconCheckCircle size={14} /> },
-  { value: "pending", label: "Pending", icon: <IconClock size={14} /> },
-  { value: "overdue", label: "Overdue", icon: <IconAlert size={14} /> },
-];
-
-export default function InvoicesPage() {
-  const [fees, setFees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-  const [status, setStatus] = useState("");
-  const [month, setMonth] = useState("");
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, tone = "success") => {
-    setToast({ message, tone });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const load = useCallback(() => {
-    setLoading(true);
-    feeService
-      .list({ status, month, limit: 100 })
-      .then((res) => {
-        const real = res.data || [];
-        setFees(real.length > 0 ? real : MOCK_FEES);
-      })
-      .catch(() => setFees(MOCK_FEES))
-      .finally(() => setLoading(false));
-  }, [status, month]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const handlePay = async (payload) => {
-    try {
-      await feeService.markPaid(selected._id, payload);
-      setSelected(null);
-      showToast("Payment recorded successfully");
-      load();
-    } catch (err) {
-      showToast(err.response?.data?.message || "Payment failed", "error");
-    }
-  };
-
-  const handleReceipt = (fee) =>
-    window.open(feeService.receiptUrl(fee._id), "_blank");
-
-  const handleExport = () => {
-    exportToCsv("all-invoices", fees, [
-      { label: "Invoice", value: (r) => r.invoiceNo },
-      { label: "Student", value: (r) => r.studentId?.name || "" },
-      { label: "Roll No", value: (r) => r.studentId?.rollNo || "" },
-      { label: "Month", value: (r) => r.month },
-      { label: "Amount", value: (r) => r.amount },
-      { label: "Status", value: (r) => r.status },
-    ]);
-    showToast("Invoices exported");
-  };
-
-  const counts = useMemo(() => {
-    const paid = fees.filter((f) => f.status === "paid");
-    const pending = fees.filter((f) => f.status === "pending");
-    const overdue = fees.filter((f) => f.status === "overdue");
-    const totalAmount = fees.reduce((s, f) => s + Number(f.amount || 0), 0);
-    const collected = paid.reduce((s, f) => s + Number(f.amount || 0), 0);
-    const outstanding = pending.reduce((s, f) => s + Number(f.amount || 0), 0) +
-                        overdue.reduce((s, f) => s + Number(f.amount || 0), 0);
-    return {
-      all: fees.length,
-      paid: paid.length,
-      pending: pending.length,
-      overdue: overdue.length,
-      totalAmount,
-      collected,
-      outstanding,
-    };
-  }, [fees]);
-
-  const visibleFees = useMemo(() => {
-    let list = fees;
-    if (status) list = list.filter((f) => f.status === status);
-    if (month) list = list.filter((f) => (f.month || "").toLowerCase().includes(month.toLowerCase()));
-    return list;
-  }, [fees, status, month]);
-
-  return (
-    <main className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* Breadcrumb */}
-        <Link
-          href="/admin/fees"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand mb-6 transition"
-        >
-          <IconArrowLeft /> Fee Management
-        </Link>
-
-        {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-[32px] leading-tight font-semibold text-navy tracking-tight">
-              All invoices
-            </h1>
-            <p className="text-gray-500 mt-2 text-[15px]">
-              Browse, search, and filter every fee invoice for your school.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={!visibleFees.length}
-            className="inline-flex items-center gap-2 font-medium rounded-lg px-4 py-2 text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand transition"
-          >
-            <IconDownload /> Export CSV
-          </button>
-        </div>
-
-        {/* KPI cards */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <KPI
-            icon={<IconReceipt size={16} />}
-            tone="blue"
-            label="Total invoices"
-            value={counts.all.toString()}
-            sub={formatCurrency(counts.totalAmount)}
-          />
-          <KPI
-            icon={<IconCheckCircle size={16} />}
-            tone="emerald"
-            label="Paid"
-            value={counts.paid.toString()}
-            sub={formatCurrency(counts.collected)}
-          />
-          <KPI
-            icon={<IconClock size={16} />}
-            tone="amber"
-            label="Pending"
-            value={counts.pending.toString()}
-            sub={counts.pending > 0 ? "Awaiting payment" : "None"}
-          />
-          <KPI
-            icon={<IconAlert size={16} />}
-            tone="red"
-            label="Overdue"
-            value={counts.overdue.toString()}
-            sub={counts.overdue > 0 ? "Action required" : "All clear"}
-          />
-        </section>
-
-        {/* Filter card */}
-        <div className="bg-white rounded-2xl border border-gray-200/60 p-4 mb-6">
-          {/* Status tabs */}
-          <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-            {STATUS_TABS.map((tab) => {
-              const active = status === tab.value;
-              const count = tab.value === "" ? counts.all : counts[tab.value];
-              return (
-                <button
-                  key={tab.value}
-                  type="button"
-                  onClick={() => setStatus(tab.value)}
-                  className={
-                    "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition " +
-                    (active
-                      ? "bg-brand text-white"
-                      : "text-gray-600 hover:bg-gray-100")
-                  }
-                >
-                  <span className={active ? "text-gray-300" : "text-gray-400"}>
-                    {tab.icon}
-                  </span>
-                  {tab.label}
-                  <span
-                    className={
-                      "ml-0.5 text-xs tabular-nums " +
-                      (active ? "text-gray-300" : "text-gray-400")
-                    }
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Month filter */}
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              placeholder="Filter by month (for example, October-2026)"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              className="px-3.5 py-2 border border-gray-200 rounded-lg text-sm flex-1 min-w-[220px] focus:outline-none focus:border-gray-400 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 transition"
-            />
-            {(month || status) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMonth("");
-                  setStatus("");
-                }}
-                className="text-sm text-gray-500 hover:text-brand px-2 focus:outline-none focus-visible:underline transition"
-              >
-                Clear filters
-              </button>
-            )}
-            <span className="text-xs text-gray-400">
-              Showing {visibleFees.length} of {counts.all}
-            </span>
-          </div>
-        </div>
-
-        {/* Table */}
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-200/60 p-8 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        ) : visibleFees.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/60 py-20 text-center">
-            <div className="w-16 h-16 mx-auto mb-5 text-gray-300 flex items-center justify-center">
-              <IconEmptyReceipt />
-            </div>
-            <h3 className="font-semibold text-navy text-[17px]">
-              {status || month ? "No matching invoices" : "No invoices yet"}
-            </h3>
-            <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
-              {status || month
-                ? "Try adjusting your filters or clear them to see all invoices."
-                : "Generate your first batch of invoices to get started."}
-            </p>
-            {!status && !month && (
-              <Link
-                href="/admin/fees/structure"
-                className="inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-brand text-white hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 mt-6 transition"
-              >
-                Generate invoices
-              </Link>
-            )}
-          </div>
-        ) : (
-          <InvoiceTable fees={visibleFees} onPay={setSelected} onViewReceipt={handleReceipt} />
-        )}
-      </div>
-
-      <FeePaymentModal
-        isOpen={!!selected}
-        onClose={() => setSelected(null)}
-        fee={selected}
-        onConfirm={handlePay}
-      />
-
-      {toast && (
-        <div
-          role="status"
-          className={
-            "fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium " +
-            (toast.tone === "error" ? "bg-red-600" : "bg-brand")
-          }
-        >
-          {toast.message}
-        </div>
-      )}
-    </main>
-  );
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  }
+  return response;
 }
 
-const KPI_TONES = {
-  emerald: "bg-emerald-50 text-emerald-600",
-  amber: "bg-amber-50 text-amber-600",
-  blue: "bg-blue-50 text-brand",
-  red: "bg-red-50 text-red-600",
-};
+function getStatus(fee) {
+  const status = String(fee.status || "pending").toLowerCase();
+  if (status === "paid") return "paid";
+  if (status === "overdue") return "overdue";
+  if (fee.dueDate && new Date(fee.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))) return "overdue";
+  return "pending";
+}
 
-function KPI({ icon, tone, label, value, sub }) {
+export default function AdminInvoicesPage() {
+  const [fees, setFees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [notice, setNotice] = useState("");
+
+  const loadFees = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await api("/api/fees");
+      const data = await response.json();
+      setFees(Array.isArray(data) ? data : data.fees || data.invoices || []);
+    } catch (err) {
+      setError(err.message || "Could not load invoices.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadFees(); }, [loadFees]);
+
+  const counts = useMemo(() => {
+    const result = { all: fees.length, paid: 0, pending: 0, overdue: 0 };
+    fees.forEach((fee) => result[getStatus(fee)]++);
+    return result;
+  }, [fees]);
+
+  const chartData = [
+    { name: "Paid", value: counts.paid },
+    { name: "Pending", value: counts.pending },
+    { name: "Overdue", value: counts.overdue },
+  ];
+
+  const totalBilled = fees.reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+  const collected = fees.filter((fee) => getStatus(fee) === "paid")
+    .reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+  const outstanding = fees.filter((fee) => getStatus(fee) !== "paid")
+    .reduce((sum, fee) => sum + (Number(fee.amount) || 0), 0);
+
+  const filtered = fees.filter((fee) => {
+    const student = fee.student?.name || fee.studentName || fee.student?.fullName || "";
+    const text = [fee.invoiceNumber, fee.invoiceNo, student, fee.rollNumber, fee.month].join(" ").toLowerCase();
+    return (filter === "all" || getStatus(fee) === filter) && text.includes(search.toLowerCase());
+  });
+
+  async function payInvoice(fee) {
+    const id = fee._id || fee.id;
+    if (!id) throw new Error("Invoice ID is missing.");
+    await api(`/api/fees/${encodeURIComponent(id)}/pay`, { method: "PUT" });
+    setNotice("Invoice payment status updated.");
+    await loadFees();
+  }
+
+  async function deleteInvoice(fee) {
+    const id = fee._id || fee.id;
+    if (!id) throw new Error("Invoice ID is missing.");
+    await api(`/api/fees/${encodeURIComponent(id)}`, { method: "DELETE" });
+    setFees((current) => current.filter((item) => (item._id || item.id) !== id));
+    setNotice("Invoice deleted.");
+  }
+
+  async function receipt(fee) {
+    const id = fee._id || fee.id;
+    const response = await api(`/api/fees/${encodeURIComponent(id)}/receipt`);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `receipt-${id}.pdf`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const cards = [
+    { title: "Total billed", value: totalBilled, sub: `${counts.all} invoices`, icon: "↗", tone: "blue" },
+    { title: "Collected", value: collected, sub: `${counts.paid} paid invoices`, icon: "✓", tone: "green" },
+    { title: "Outstanding", value: outstanding, sub: `${counts.pending + counts.overdue} unpaid invoices`, icon: "◷", tone: "amber" },
+  ];
+
   return (
-    <article className="bg-white rounded-2xl border border-gray-200/60 p-5 hover:shadow-md transition-shadow">
-      <div className={"w-9 h-9 rounded-lg " + KPI_TONES[tone] + " flex items-center justify-center mb-3"}>
-        {icon}
+    <main className="min-h-screen bg-gray-50/50 px-4 py-7 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1500px] space-y-7">
+        <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-sm font-semibold text-brand">FINANCE / BILLING</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Invoices</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">A complete view of billing, collections, and unpaid student fees.</p>
+          </div>
+          <Link href="/admin/fees/structure" className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:opacity-95">
+            <span className="text-lg">+</span> Generate invoice
+          </Link>
+        </header>
+
+        {notice && <div role="status" className="flex justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}<button onClick={() => setNotice("")}>Dismiss ×</button></div>}
+
+        {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"><span>{error}</span><button onClick={loadFees} className="font-bold underline">Try again</button></div>}
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card) => (
+            <article key={card.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">{card.title}</p>
+                  <p className="mt-3 break-words text-2xl font-bold tracking-tight text-navy">{loading ? "—" : currency(card.value)}</p>
+                  <p className="mt-2 text-xs text-gray-500">{card.sub}</p>
+                </div>
+                <span className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg font-bold ${card.tone === "green" ? "bg-emerald-50 text-emerald-600" : card.tone === "amber" ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-brand"}`}>{card.icon}</span>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-[1.35fr_1fr]">
+          <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-navy">Invoice status overview</h2>
+                <p className="mt-1 text-sm text-gray-500">Distribution of current invoices</p>
+              </div>
+              <span className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500">Live data</span>
+            </div>
+            {loading ? <div className="mt-5 h-56 animate-pulse rounded-xl bg-gray-50" /> : (
+              <div className="grid items-center gap-4 sm:grid-cols-2">
+                <div className="relative h-56 min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={63} outerRadius={91} paddingAngle={4} stroke="none">
+                        {chartData.map((entry, index) => <Cell key={entry.name} fill={COLORS[index]} />)}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} invoices`, "Count"]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-navy">{counts.all}</span>
+                    <span className="text-xs text-gray-500">Invoices</span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {chartData.map((item, index) => (
+                    <div key={item.name} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
+                        <span className="text-sm text-gray-600">{item.name}</span>
+                      </div>
+                      <span className="font-bold tabular-nums text-navy">{item.value}</span>
+                    </div>
+                  ))}
+                  <div className="border-t border-gray-100 pt-3">
+                    <p className="text-xs text-gray-500">Collection rate</p>
+                    <p className="mt-1 text-xl font-bold text-navy">{totalBilled ? Math.round(collected / totalBilled * 100) : 0}%</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </article>
+
+          <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <h2 className="font-bold text-navy">Quick filters</h2>
+            <p className="mt-1 text-sm text-gray-500">Focus on the invoices you need.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              {[
+                { key: "all", label: "All invoices", color: "text-navy" },
+                { key: "paid", label: "Paid", color: "text-emerald-700" },
+                { key: "pending", label: "Pending", color: "text-amber-700" },
+                { key: "overdue", label: "Overdue", color: "text-rose-700" },
+              ].map((item) => (
+                <button key={item.key} onClick={() => setFilter(item.key)} className={`rounded-xl border p-4 text-left transition ${filter === item.key ? "border-brand bg-blue-50 ring-1 ring-brand" : "border-gray-200 hover:bg-gray-50"}`}>
+                  <p className={`text-xs font-semibold ${item.color}`}>{item.label}</p>
+                  <p className="mt-2 text-2xl font-bold text-navy">{loading ? "—" : counts[item.key]}</p>
+                </button>
+              ))}
+            </div>
+          </article>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+            <div>
+              <h2 className="text-lg font-bold text-navy">Invoice register</h2>
+              <p className="mt-1 text-sm text-gray-500">Search, review, and manage individual invoices.</p>
+            </div>
+            <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search invoice, student, roll no..." className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-blue-100 lg:max-w-sm" />
+          </div>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {["all", "paid", "pending", "overdue"].map((key) => (
+              <button key={key} onClick={() => setFilter(key)} className={`rounded-lg px-3.5 py-2 text-xs font-bold capitalize transition ${filter === key ? "bg-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{key} ({counts[key]})</button>
+            ))}
+          </div>
+          <InvoiceTable fees={filtered} loading={loading} error={error} onRetry={loadFees} onPay={payInvoice} onDelete={deleteInvoice} onViewReceipt={receipt} showStudent />
+        </section>
       </div>
-      <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-        {label}
-      </div>
-      <div className="text-2xl font-semibold text-navy mt-2 tracking-tight tabular-nums">
-        {value}
-      </div>
-      {sub && <div className="text-xs text-gray-400 mt-1 truncate">{sub}</div>}
-    </article>
+    </main>
   );
 }

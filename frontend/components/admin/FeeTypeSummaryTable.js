@@ -31,7 +31,7 @@ export default function FeeTypeSummaryTable({ rows }) {
   const avgPending = 100 - avgCollection;
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 p-5">
+    <section className="bg-white block min-h-[300px] rounded-2xl border border-gray-100 p-5">
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-xl"></span>
