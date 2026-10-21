@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import { Search, Bell, MessageSquare, ChevronDown, User, Menu } from 'lucide-react';
-import GraduationCapIcon from '@/public/GraduationCapIcon';
+import Image from 'next/image';
+import Logo from '@/public/dashboardlogo.png'
 
 export default function Header({ isCollapsed, setIsCollapsed }) {
   const [user, setUser] = useState(null);
@@ -9,20 +10,28 @@ export default function Header({ isCollapsed, setIsCollapsed }) {
 
   return (
     <header className="h-16 bg-[#0f111a] border-b border-slate-800/80 px-6 flex items-center justify-between sticky top-0 z-40 w-full">
-     
+
       <div className="flex items-center gap-6 flex-1 max-w-xl">
         <div className="flex items-center gap-3">
-          <GraduationCapIcon className="w-14 h-14 text-sky-400 flex-shrink-0" />
+          <Image
+            src={Logo}
+            alt="Logo"
+            width={56}
+            height={53}
+            className="w-15 h-full text-sky-400 flex-shrink-0"
+          />
           <div className="flex flex-col">
-            <span className="font-extrabold text-xl leading-tight text-white tracking-wide">
-              DevNix<span className="text-sky-400">Edu</span>
+            <span className="font-extrabold text-xl leading-tight tracking-wide italic">
+              <span className="text-white">Dev</span>
+              <span className="text-blue-600">Nix</span>
+              <span className="text-white">Edu</span>
             </span>
             <span className="text-[9px] text-slate-400 font-medium uppercase tracking-wider">
               Smart School Management
             </span>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
         >
@@ -39,7 +48,7 @@ export default function Header({ isCollapsed, setIsCollapsed }) {
         </div>
       </div>
 
-      
+
       <div className="flex items-center gap-4">
         <button className="relative p-2 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors">
           <Bell className="w-5 h-5" />
