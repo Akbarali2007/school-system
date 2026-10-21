@@ -1,16 +1,17 @@
-const authorize = (...roles) => {
+
+const authorize = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Not authorized. User not found.',
+        message: 'Not authorized. Please log in first.',
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. Role '${req.user.role}' is not authorized to access this route.`,
+        message: 'You do not have permission to access this resource.',
       });
     }
 
