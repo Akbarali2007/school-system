@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
   enum: ['superadmin', 'admin', 'teacher', 'student'],
   default: 'student',
 },
+    schoolId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'School',
+  default: null,
+},
     isActive: {
       type: Boolean,
       default: true,

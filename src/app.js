@@ -12,6 +12,7 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const superadminRoutes = require('./routes/superadmin.routes');
 const themeRoutes = require('./routes/theme.routes');
 const adminRoutes = require('./routes/admin.routes');
+const paymentGatewayRoutes = require('./routes/paymentGateway.routes');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/themes', themeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment-gateways', paymentGatewayRoutes);
 
 // 404 Handler
 app.use((req, res) => {
