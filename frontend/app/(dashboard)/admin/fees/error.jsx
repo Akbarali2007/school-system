@@ -10,7 +10,7 @@ export default function FeesError({ error, reset }) {
       </p>
       <button
         onClick={() => reset()}
-        className="inline-flex items-center justify-center font-semibold rounded-xl px-6 py-3 bg-brand text-white hover:bg-brand-700"
+        className="inline-flex items-center justify-center font-semibold rounded-xl px-6 py-3 bg-[#0077F5] text-white text-white hover:bg-[#0077F5] text-white-700"
       >
         Try again
       </button>

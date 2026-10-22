@@ -81,7 +81,7 @@ export default function FeeHubPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="group bg-white rounded-2xl border border-gray-200/60 p-6 hover:border-brand hover:shadow-md transition flex items-start gap-4"
+              className="group bg-white shadow-sm border border-gray-100 rounded-2xl border border-gray-200/60 p-6 hover:border-brand hover:shadow-md transition flex items-start gap-4"
             >
               <div className={`w-11 h-11 rounded-xl ${item.tone} flex items-center justify-center shrink-0`}>
                 {item.icon}
