@@ -27,12 +27,15 @@ const register = async (req, res, next) => {
         message: 'Password must be at least 6 characters.',
       });
     }
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-return res.status(400).json({
-success: false,
-message: 'Please provide a valid email address.',
-});
-}
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
 
     if (!mongoose.isValidObjectId(schoolId)) {
       return res.status(400).json({
@@ -53,7 +56,6 @@ message: 'Please provide a valid email address.',
       });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -65,12 +67,14 @@ message: 'Please provide a valid email address.',
       });
     }
 
+    // Public registration must never assign a privileged role.
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password,
       role: 'student',
       school: school._id,
+      schoolId: school._id,
     });
 
     const token = generateToken(user._id);
@@ -85,6 +89,7 @@ message: 'Please provide a valid email address.',
         email: user.email,
         role: user.role,
         school: user.school,
+        schoolId: user.schoolId,
       },
     });
   } catch (error) {
@@ -162,6 +167,7 @@ const login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         school: user.school,
+        schoolId: user.schoolId || user.school,
       },
     });
   } catch (error) {

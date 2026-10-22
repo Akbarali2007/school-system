@@ -1,24 +1,49 @@
 const crypto = require("crypto");
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "12345678901234567890123456789012"; 
-const IV_LENGTH = 16;
+
+function getEncryptionKey() {
+  const key = process.env.ENCRYPTION_KEY;
+
+  if (!key || !/^[0-9a-fA-F]{64}$/.test(key)) {
+    throw new Error(
+      "ENCRYPTION_KEY must be configured as a 64-character hexadecimal key."
+    );
+  }
+
+  return Buffer.from(key, "hex");
+}
 
 function encrypt(text) {
-  if (!text) return text;
-  let iv = crypto.randomBytes(IV_LENGTH);
-  let cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString("hex") + ":" + encrypted.toString("hex");
+  if (text === undefined || text === null || text === "") return text;
+
+  const key = getEncryptionKey();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+
+  const encrypted = Buffer.concat([
+    cipher.update(String(text), "utf8"),
+    cipher.final(),
+  ]);
+
+  return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
 }
 
 function decrypt(text) {
-  if (!text) return text;
-  let textParts = text.split(":");
-  let iv = Buffer.from(textParts.shift(), "hex");
-  let encryptedText = Buffer.from(textParts.join(":"), "hex");
-  let decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY), iv);
-  let decrypted = decipher.update(encryptedText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return decrypted.toString();
+  if (text === undefined || text === null || text === "") return text;
+
+  const parts = text.split(":");
+  if (parts.length !== 2 || !/^[0-9a-fA-F]{32}$/.test(parts[0])) {
+    throw new Error("Invalid encrypted value format.");
+  }
+
+  const key = getEncryptionKey();
+  const iv = Buffer.from(parts[0], "hex");
+  const encrypted = Buffer.from(parts[1], "hex");
+  const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+
+  return Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]).toString("utf8");
 }
+
 module.exports = { encrypt, decrypt };
