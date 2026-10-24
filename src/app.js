@@ -18,6 +18,7 @@ const parentRoutes = require('./routes/parent.routes');
 const timetableRoutes = require('./routes/timetableRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const syllabusRoutes = require('./routes/syllabusRoutes');
+const feeRoutes = require('./routes/feeRoutes');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use('/api/parent', parentRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/syllabus', syllabusRoutes);
+app.use('/api/fees', feeRoutes);
 
 // 404 Handler
 app.use((req, res) => {
