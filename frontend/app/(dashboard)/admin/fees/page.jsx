@@ -3,33 +3,43 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import MonthlyCollectionChart from "@/components/admin/MonthlyCollectionChart";
 import FeeTypeSummaryTable from "@/components/admin/FeeTypeSummaryTable";
+import feeService from "@/services/feeService";
 
 export default function AdminFeesPage() {
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [typeData, setTypeData] = useState([]);
+  const [summary, setSummary] = useState({ totalCollected: 0, totalPending: 0, defaulters: 0 });
   const [loading, setLoading] = useState(true);
-  
-  // Mock data for charts (Replace with real API call if needed)
-  const monthlyData = [
-    { month: "Jan", amount: 1800000 }, { month: "Feb", amount: 2400000 }, 
-    { month: "Mar", amount: 2900000 }, { month: "Apr", amount: 3200000 }, 
-    { month: "May", amount: 3500000 }, { month: "Jun", amount: 4200000 }
-  ];
-  
-  const summaryData = [
-    { type: "Tuition Fee", amount: 1850000, collected: 76 },
-    { type: "Admission Fee", amount: 320000, collected: 92 },
-    { type: "Exam Fee", amount: 210000, collected: 68 },
-    { type: "Transport Fee", amount: 180000, collected: 85 },
-    { type: "Library Fee", amount: 95000, collected: 70 },
-  ];
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        // Fetch all 3 endpoints in parallel
+        const [monthlyRes, typeRes, summaryRes] = await Promise.all([
+          feeService.getMonthlyAnalytics().catch(() => ({ data: [] })),
+          feeService.getByTypeAnalytics().catch(() => ({ data: [] })),
+          feeService.getAnalytics().catch(() => ({ data: {} }))
+        ]);
+        
+        setMonthlyData(monthlyRes?.data || []);
+        setTypeData(typeRes?.data || []);
+        setSummary(summaryRes?.data || {});
+      } catch (err) {
+        console.error("Failed to load analytics", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
 
   return (
     <main className="min-h-screen bg-gray-50/50 p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <Link href="/admin" className="text-sm text-gray-500 hover:text-brand mb-2 inline-flex items-center gap-2 transition">← Back to Dashboard</Link>
+            <Link href="/dashboard/admin" className="text-sm text-gray-500 hover:text-brand mb-2 inline-flex items-center gap-2 transition">← Back to Dashboard</Link>
             <h1 className="text-3xl font-semibold text-navy tracking-tight">Fee Dashboard</h1>
             <p className="text-gray-500 mt-1">Overview of your school's fee collection and analytics.</p>
           </div>
@@ -39,26 +49,34 @@ export default function AdminFeesPage() {
           </div>
         </div>
 
-        {/* KPI Cards (Simplified) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[
-            { label: "Fee Collection (Today)", value: "Rs. 285,000", trend: "+18%", color: "text-green-500" },
-            { label: "Outstanding Fees", value: "Rs. 1,245,000", trend: "12% of total", color: "text-orange-500" },
-            { label: "Fee Defaulters", value: "186", trend: "+6%", color: "text-red-500" },
-            { label: "Total Students", value: "1,240", trend: "+3%", color: "text-green-500" },
-          ].map((kpi, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm">
-              <p className="text-sm font-medium text-gray-500">{kpi.label}</p>
-              <h3 className="text-2xl font-semibold text-navy mt-2">{kpi.value}</h3>
-              <p className={`text-xs mt-2 font-medium ${kpi.color}`}>{kpi.trend}</p>
-            </div>
-          ))}
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">Total Collected</p>
+            <h3 className="text-2xl font-semibold text-navy mt-2">Rs. {summary?.totalCollected?.toLocaleString() || 0}</h3>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">Outstanding Fees</p>
+            <h3 className="text-2xl font-semibold text-navy mt-2">Rs. {summary?.totalPending?.toLocaleString() || 0}</h3>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">Fee Defaulters</p>
+            <h3 className="text-2xl font-semibold text-navy mt-2">{summary?.defaulters || 0} Students</h3>
+          </div>
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MonthlyCollectionChart data={monthlyData} />
-          <FeeTypeSummaryTable data={summaryData} />
+          {loading ? (
+            <div className="h-[300px] flex items-center justify-center bg-white rounded-2xl border border-gray-200/60">Loading chart...</div>
+          ) : (
+            <MonthlyCollectionChart data={monthlyData} />
+          )}
+          {loading ? (
+            <div className="h-[300px] flex items-center justify-center bg-white rounded-2xl border border-gray-200/60">Loading summary...</div>
+          ) : (
+            <FeeTypeSummaryTable data={typeData} />
+          )}
         </div>
 
       </div>
