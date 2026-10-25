@@ -2,17 +2,54 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Page change karne ke liye
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Backend connection ke liye naye states
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
-    // Yahan backend API call karenge jab backend ready ho
-    alert("Login button clicked! Backend API baad mein connect karenge.");
+    setError("");
+    setLoading(true);
+
+    try {
+      // Backend API ko call karna
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      // Agar response theek nahi hai (jaise galat password)
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid credentials");
+      }
+
+      // Success! Token save karein aur dashboard par bhejein
+      localStorage.setItem("token", data.token); // Token save kiya
+      localStorage.setItem("user", JSON.stringify(data.user)); // User data save kiya
+      
+      alert("Login Successful!");
+      
+      // Yahan aap role ke hisaab se redirect kar sakte hain (abhi ke liye superadmin par bhej rahe hain)
+      router.push("/superadmin"); 
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,6 +63,13 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-gray-800">DevNixEdu</h1>
           <p className="text-gray-500 mt-2 text-sm">Sign in to your portal</p>
         </div>
+
+        {/* Error Message Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4 text-center">
+            {error}
+          </div>
+        )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -81,34 +125,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200 shadow-md hover:shadow-lg disabled:bg-blue-400"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-gray-200"></div>
-          <span className="px-3 text-xs text-gray-400">OR</span>
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-
-        {/* Register Link */}
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-gray-600 mt-6">
           Don't have an account?{" "}
-          <Link
-            href="/register"
-            className="text-blue-600 hover:underline font-medium"
-          >
+          <Link href="/register" className="text-blue-600 hover:underline font-medium">
             Create one
-          </Link>
-        </p>
-
-        {/* Back to Home */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          <Link href="/" className="hover:text-gray-600">
-            ← Back to Home
           </Link>
         </p>
       </div>
