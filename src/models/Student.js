@@ -45,6 +45,12 @@ const studentSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'School',
+      default: null,
+      index: true,
+    },
     guardianName: {
       type: String,
       trim: true,

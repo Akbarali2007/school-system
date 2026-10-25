@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+
 const errorHandler = require('./middleware/errorHandler');
-const classRoutes = require('./routes/class.routes');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -12,6 +12,13 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const superadminRoutes = require('./routes/superadmin.routes');
 const themeRoutes = require('./routes/theme.routes');
 const adminRoutes = require('./routes/admin.routes');
+const paymentGatewayRoutes = require('./routes/paymentGateway.routes');
+const classRoutes = require('./routes/class.routes');
+const parentRoutes = require('./routes/parent.routes');
+const timetableRoutes = require('./routes/timetableRoutes');
+const noticeRoutes = require('./routes/noticeRoutes');
+const syllabusRoutes = require('./routes/syllabusRoutes');
+const feeRoutes = require('./routes/feeRoutes');
 
 const app = express();
 
@@ -35,6 +42,12 @@ app.get('/', (req, res) => {
       students: '/api/students',
       teachers: '/api/teachers',
       attendance: '/api/attendance',
+      classes: '/api/classes',
+      parent: '/api/parent',
+      timetable: '/api/timetable',
+      notices: '/api/notices',
+      syllabus: '/api/syllabus',
+      paymentGateways: '/api/payment-gateways',
     },
   });
 });
@@ -48,12 +61,18 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/themes', themeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment-gateways', paymentGatewayRoutes);
+app.use('/api/parent', parentRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api/notices', noticeRoutes);
+app.use('/api/syllabus', syllabusRoutes);
+app.use('/api/fees', feeRoutes);
 
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route  not found",
+    message: 'Route not found',
   });
 });
 
