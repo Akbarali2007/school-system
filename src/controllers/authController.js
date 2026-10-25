@@ -1,8 +1,16 @@
 
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const User = require('../models/User');
 const School = require('../models/School.model');
 const generateToken = require('../utils/generateToken');
+const sendVerificationEmail = require('../utils/sendVerificationEmail');
+
+const hashCode = (code) =>
+  crypto.createHash('sha256').update(code).digest('hex');
+
+const createVerificationCode = () =>
+  crypto.randomInt(100000, 1000000).toString();
 
 // Register a student in an existing active school.
 const register = async (req, res, next) => {
@@ -56,9 +64,7 @@ const register = async (req, res, next) => {
       });
     }
 
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
-    });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json({
@@ -67,7 +73,8 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Public registration must never assign a privileged role.
+    const code = createVerificationCode();
+
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
@@ -75,21 +82,34 @@ const register = async (req, res, next) => {
       role: 'student',
       school: school._id,
       schoolId: school._id,
+      isEmailVerified: false,
+      emailVerificationCodeHash: hashCode(code),
+      emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000),
+      emailVerificationLastSentAt: new Date(),
     });
 
-    const token = generateToken(user._id);
+    try {
+      await sendVerificationEmail(user.email, code);
+    } catch (emailError) {
+      console.error('Verification email delivery failed.');
+
+      return res.status(503).json({
+        success: false,
+        accountCreated: true,
+        message:
+          'Account created, but verification email could not be sent. Check email configuration and request a new code.',
+      });
+    }
 
     return res.status(201).json({
       success: true,
-      message: 'Student registered successfully.',
-      token,
+      message: 'Signup successful. Check your email for the verification code.',
       data: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        school: user.school,
-        schoolId: user.schoolId,
+        isEmailVerified: false,
       },
     });
   } catch (error) {
@@ -100,6 +120,150 @@ const register = async (req, res, next) => {
       });
     }
 
+    next(error);
+  }
+};
+
+// Verify the email using the six-digit code.
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+
+    if (
+      typeof email !== 'string' ||
+      !/^\S+@\S+\.\S+$/.test(email.trim()) ||
+      typeof code !== 'string' ||
+      !/^\d{6}$/.test(code)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid email and six-digit verification code are required.',
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    }).select(
+      '+emailVerificationCodeHash +emailVerificationExpires'
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code.',
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(200).json({
+        success: true,
+        message: 'Email is already verified. You can log in.',
+      });
+    }
+
+    if (
+      !user.emailVerificationCodeHash ||
+      !user.emailVerificationExpires ||
+      user.emailVerificationExpires.getTime() < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code. Request a new code.',
+      });
+    }
+
+    const storedHash = Buffer.from(user.emailVerificationCodeHash, 'hex');
+    const submittedHash = Buffer.from(hashCode(code), 'hex');
+
+    if (
+      storedHash.length !== submittedHash.length ||
+      !crypto.timingSafeEqual(storedHash, submittedHash)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code.',
+      });
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationCodeHash = undefined;
+    user.emailVerificationExpires = undefined;
+    user.emailVerificationLastSentAt = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully. You can now log in.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Send a new verification code.
+const resendVerificationCode = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (
+      typeof email !== 'string' ||
+      !/^\S+@\S+\.\S+$/.test(email.trim())
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    }).select(
+      '+emailVerificationCodeHash +emailVerificationExpires +emailVerificationLastSentAt'
+    );
+
+    const genericMessage =
+      'If an unverified account exists for this email, a new code will be sent.';
+
+    if (!user || user.isEmailVerified) {
+      return res.status(200).json({
+        success: true,
+        message: genericMessage,
+      });
+    }
+
+    if (
+      user.emailVerificationLastSentAt &&
+      Date.now() - user.emailVerificationLastSentAt.getTime() < 60 * 1000
+    ) {
+      return res.status(429).json({
+        success: false,
+        message: 'Please wait 60 seconds before requesting another code.',
+      });
+    }
+
+    const code = createVerificationCode();
+
+    user.emailVerificationCodeHash = hashCode(code);
+    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.emailVerificationLastSentAt = new Date();
+    await user.save();
+
+    try {
+      await sendVerificationEmail(user.email, code);
+    } catch (emailError) {
+      console.error('Verification email delivery failed.');
+
+      return res.status(503).json({
+        success: false,
+        message: 'Could not send the verification email. Please try again later.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: genericMessage,
+    });
+  } catch (error) {
     next(error);
   }
 };
@@ -127,6 +291,14 @@ const login = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.',
+      });
+    }
+
+    if (user.isEmailVerified === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email before logging in.',
+        requiresEmailVerification: true,
       });
     }
 
@@ -198,4 +370,10 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getMe };
+module.exports = {
+  register,
+  login,
+  getMe,
+  verifyEmail,
+  resendVerificationCode,
+};

@@ -58,6 +58,28 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // New signups must verify their email.
+// Existing users remain compatible.
+isEmailVerified: {
+  type: Boolean,
+  default: true,
+},
+
+// Store only the hashed verification code.
+emailVerificationCodeHash: {
+  type: String,
+  select: false,
+},
+
+emailVerificationExpires: {
+  type: Date,
+  select: false,
+},
+
+emailVerificationLastSentAt: {
+  type: Date,
+  select: false,
+},
   },
   {
     timestamps: true,
