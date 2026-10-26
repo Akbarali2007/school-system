@@ -1,29 +1,25 @@
 const nodemailer = require('nodemailer');
 
-const sendVerificationEmail = async (email, otp) => {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Email SMTP configuration is missing');
-  }
-
+const sendVerificationEmail = async (email, code) => {
+  // Gmail ka transporter banayein
   const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
+    service: 'gmail',
     auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
-  await transporter.sendMail({
-    from: SMTP_USER,
+  // Email ke options
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Verify your School Management System account',
-    text: `Your verification code is ${otp}. It expires in 10 minutes.`,
-    html: `<p>Your verification code is:</p><h2>${otp}</h2><p>This code expires in 10 minutes.</p>`,
-  });
+    subject: 'Verify Your DevNixEdu Account',
+    text: `Your OTP for account verification is: ${code}. It is valid for 10 minutes.`,
+  };
+
+  // Email bhejein
+  await transporter.sendMail(mailOptions);
 };
 
 module.exports = sendVerificationEmail;

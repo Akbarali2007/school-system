@@ -19,6 +19,7 @@ const timetableRoutes = require('./routes/timetableRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const syllabusRoutes = require('./routes/syllabusRoutes');
 const feeRoutes = require('./routes/feeRoutes');
+const examRoutes = require('./routes/exam.routes'); // Naya Exam Route import kiya
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.get('/', (req, res) => {
       notices: '/api/notices',
       syllabus: '/api/syllabus',
       paymentGateways: '/api/payment-gateways',
+      exams: '/api/exams', // Naya Endpoint list mein add kiya
     },
   });
 });
@@ -67,6 +69,7 @@ app.use('/api/timetable', timetableRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/syllabus', syllabusRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/exams', examRoutes); // Naya Exam Route connect kiya
 
 // 404 Handler
 app.use((req, res) => {
