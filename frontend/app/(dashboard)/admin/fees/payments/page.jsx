@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, PieChart, Pie, Cell,
 } from "recharts";
+import api from "@/services/api"; // Backend connect karne ke liye import kiya
 
 const currency = (value) => new Intl.NumberFormat("en-PK", {
   style: "currency", currency: "PKR", notation: "compact", maximumFractionDigits: 1,
@@ -37,12 +38,14 @@ export default function AdminPaymentsPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/fees");
-      if (!response.ok) throw new Error("Could not load payments. Please retry.");
-      const data = await response.json();
-      const items = Array.isArray(data) ? data : data.fees || data.invoices || [];
+      // Yahan humne api.get use kiya hai taake backend se baat ho
+      const response = await api.get("/fees?status=paid&limit=200");
+      const data = response.data;
+      
+      const items = Array.isArray(data) ? data : data.fees || data.invoices || data.data || [];
       setFees(items.filter((fee) => String(fee.status || "").toLowerCase() === "paid"));
     } catch (err) {
+      console.error(err);
       setError(err.message || "Unable to load payment data.");
     } finally {
       setLoading(false);

@@ -45,8 +45,8 @@ export default function RegisterPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: "superadmin", // Default role (Aap isko change kar sakte hain)
-          schoolName: formData.schoolName, 
+          role: "superadmin", 
+          schoolName: formData.schoolName, // School Name bhej rahe hain
         }),
       });
 
@@ -56,11 +56,11 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      setSuccess("Account created successfully! Redirecting to login...");
+      setSuccess("Account created! Please check your email for the OTP code.");
       
-      // 2 second baad login page par bhej dein
+      // 2 second baad Verify Email page par bhej dein
       setTimeout(() => {
-        router.push("/login");
+        router.push(`/verify-email?email=${formData.email}`);
       }, 2000);
 
     } catch (err) {
