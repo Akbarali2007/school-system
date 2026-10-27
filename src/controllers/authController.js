@@ -79,10 +79,17 @@ const register = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    return res.status(201).json({
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({
       success: true,
       message: 'Student registered successfully.',
-      token,
+      // token,
       data: {
         id: user._id,
         name: user.name,
@@ -157,10 +164,17 @@ const login = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Login successful.',
-      token,
+      // token,
       data: {
         id: user._id,
         name: user.name,
@@ -198,4 +212,21 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getMe };
+const logout = async (req, res, next) => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Logged out successfully.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, getMe, logout };

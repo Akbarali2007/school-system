@@ -7,6 +7,7 @@ import { useScrollTo } from '@/hooks/useScrollTo';
 import Logo from './Logo';
 import MobileMenu from './MobileMenu';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -27,9 +28,8 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 backdrop-blur-md border-b transition-all duration-300 ${
-        isScrolled ? 'bg-white/95 border-gray-200 shadow-sm' : 'bg-white/90 border-gray-100'
-      }`}
+      className={`sticky top-0 z-50 backdrop-blur-md border-b transition-all duration-300 ${isScrolled ? 'bg-white/95 border-gray-200 shadow-sm' : 'bg-white/90 border-gray-100'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <Logo />
@@ -47,9 +47,11 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={() => openModal('Login')}>
-            Login
-          </Button>
+          <Link href="/login">
+            <Button variant="ghost" size="sm">
+              Login
+            </Button>
+          </Link>
           <Button variant="primary" size="md" onClick={() => openModal('Create Demo')}>
             Create Demo
           </Button>

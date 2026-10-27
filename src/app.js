@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
 const errorHandler = require('./middleware/errorHandler');
@@ -19,12 +20,19 @@ const timetableRoutes = require('./routes/timetableRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const syllabusRoutes = require('./routes/syllabusRoutes');
 const feeRoutes = require('./routes/feeRoutes');
+const onboardingRoutes = require('./routes/onboardingRoutes');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true, // allow to Cookies and Authorization headers
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
 if (process.env.NODE_ENV === 'development') {
@@ -67,6 +75,7 @@ app.use('/api/timetable', timetableRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/syllabus', syllabusRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 // 404 Handler
 app.use((req, res) => {

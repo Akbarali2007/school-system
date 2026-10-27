@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   { 
     name: 'Students', 
     subLabel: 'My Classes',
-    href: '/dashboard/', 
+    href: '/dashboard/admin/students', 
     icon: Users 
   },
   { 

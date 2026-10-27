@@ -5,6 +5,7 @@ const {
   register,
   login,
   getMe,
+  logout,
 } = require('../controllers/authController');
 
 const { protect } = require('../middleware/auth');
@@ -15,5 +16,6 @@ router.post('/login', login);
 
 // Protected route: logged-in user can view their own profile
 router.get('/me', protect, getMe);
+router.post('/logout', protect, logout);
 
 module.exports = router;
